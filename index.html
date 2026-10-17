@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中一英文水果學習樂園</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+        }
+        .fruit-card {
+            transition: all 0.3s ease;
+        }
+        .fruit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800 flex flex-col">
+
+    <header class="bg-emerald-600 text-white shadow-lg py-4 px-6 flex flex-wrap justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <span class="text-3xl">🍎</span>
+            <div>
+                <h1 class="text-xl font-bold tracking-wide">F1 English Fruit Adventure</h1>
+                <p class="text-xs text-emerald-100">中一英文水果學習樂園 (Vocabulary & Pronunciation)</p>
+            </div>
+        </div>
+        <nav class="flex space-x-2 mt-2 sm:mt-0">
+            <button onclick="switchTab('learn')" id="btn-learn" class="px-4 py-2 rounded-lg font-semibold bg-white text-emerald-700 shadow transition flex items-center space-x-2">
+                <i class="fa-solid fa-book-open"></i> <span>學習生字</span>
+            </button>
+            <button onclick="switchTab('spell')" id="btn-spell" class="px-4 py-2 rounded-lg font-semibold bg-emerald-700 text-white hover:bg-emerald-800 transition flex items-center space-x-2">
+                <i class="fa-solid fa-keyboard"></i> <span>串字挑戰</span>
+            </button>
+            <button onclick="switchTab('quiz')" id="btn-quiz" class="px-4 py-2 rounded-lg font-semibold bg-emerald-700 text-white hover:bg-emerald-800 transition flex items-center space-x-2">
+                <i class="fa-solid fa-gamepad"></i> <span>聽音辨生字</span>
+            </button>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        
+        <!-- SECTION 1: LEARN -->
+        <section id="section-learn" class="space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-emerald-800 flex items-center gap-2">
+                        <i class="fa-solid fa-apple-whole text-emerald-600"></i> 水果詞彙表 (Fruit Vocabulary)
+                    </h2>
+                    <p class="text-sm text-gray-600 mt-1">點擊卡片聆聽標準發音，並了解中一程度的生字與例句。</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <input type="text" id="search-input" placeholder="搜尋水果..." oninput="filterFruits()" class="px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 w-full md:w-64">
+                </div>
+            </div>
+
+            <div id="fruit-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- Fruit cards injected by JS -->
+            </div>
+        </section>
+
+        <!-- SECTION 2: SPELLING CHALLENGE -->
+        <section id="section-spell" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-emerald-100 max-w-2xl mx-auto text-center space-y-6">
+                <div class="flex justify-between items-center border-b pb-4">
+                    <h2 class="text-2xl font-bold text-emerald-800 flex items-center gap-2">
+                        <i class="fa-solid fa-keyboard text-emerald-600"></i> 串字特訓 (Spelling Challenge)
+                    </h2>
+                    <div class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-bold">
+                        得分: <span id="spell-score">0</span>
+                    </div>
+                </div>
+
+                <div class="my-6">
+                    <div id="spell-emoji" class="text-7xl mb-4 animate-bounce">🍎</div>
+                    <div class="text-xl font-bold text-gray-700 mb-2" id="spell-chinese">蘋果</div>
+                    <p class="text-xs text-gray-500 mb-4" id="spell-hint">提示: 拼寫這個英文生字</p>
+                    
+                    <!-- Scrambled letters or blank boxes -->
+                    <div class="flex justify-center gap-2 mb-6" id="spell-slots">
+                        <!-- slots -->
+                    </div>
+
+                    <div class="flex justify-center gap-2 flex-wrap max-w-md mx-auto mb-6" id="letter-bank">
+                        <!-- letter tiles -->
+                    </div>
+
+                    <div class="flex justify-center gap-4">
+                        <button onclick="speakCurrentSpellWord()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold px-4 py-2 rounded-xl transition flex items-center gap-2">
+                            <i class="fa-solid fa-volume-high"></i> 聽讀音
+                        </button>
+                        <button onclick="checkSpelling()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2 rounded-xl shadow transition">
+                            提交答案
+                        </button>
+                        <button onclick="nextSpellQuestion()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-xl transition">
+                            跳過
+                        </button>
+                    </div>
+                </div>
+                <div id="spell-feedback" class="text-lg font-bold min-h-[30px]"></div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PRONUNCIATION / QUIZ -->
+        <section id="section-quiz" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-emerald-100 max-w-2xl mx-auto text-center space-y-6">
+                <div class="flex justify-between items-center border-b pb-4">
+                    <h2 class="text-2xl font-bold text-emerald-800 flex items-center gap-2">
+                        <i class="fa-solid fa-headphones text-emerald-600"></i> 聽音辨生字 (Listening Quiz)
+                    </h2>
+                    <div class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-bold">
+                        正確率: <span id="quiz-score">0</span>/<span id="quiz-total">0</span>
+                    </div>
+                </div>
+
+                <div class="py-6 space-y-6">
+                    <div class="bg-emerald-50 p-8 rounded-2xl border border-emerald-200 flex flex-col items-center justify-center cursor-pointer hover:bg-emerald-100 transition" onclick="playQuizAudio()">
+                        <i class="fa-solid fa-volume-high text-5xl text-emerald-600 mb-3 animate-pulse"></i>
+                        <span class="text-emerald-800 font-bold text-lg">點擊播放讀音</span>
+                    </div>
+
+                    <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Quiz choices injected by JS -->
+                    </div>
+                </div>
+                <div id="quiz-feedback" class="text-lg font-bold min-h-[30px]"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 py-4 text-center text-sm text-gray-500">
+        <p>中一英文學習支援系統 &copy; 2026 | 提升英文詞彙與串字能力</p>
+    </footer>
+
+    <!-- Notification Modal/Box -->
+    <div id="msg-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center space-y-4 shadow-xl">
+            <div id="modal-icon" class="text-4xl text-emerald-600">🎉</div>
+            <h3 id="modal-title" class="text-xl font-bold text-gray-800">太棒了！</h3>
+            <p id="modal-text" class="text-gray-600 text-sm">你成功完成了挑戰！</p>
+            <button onclick="closeModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-xl transition">確定</button>
+        </div>
+    </div>
+
+    <script>
+        // Fruit database with F1 level vocabulary, phonetic symbols, translation, and example sentences
+        const fruits = [
+            { en: "Apple", zh: "蘋果", ipa: "/ˈæp.əl/", example: "An apple a day keeps the doctor away.", emoji: "🍎" },
+            { en: "Banana", zh: "香蕉", ipa: "/bəˈnæn.ə/", example: "Monkeys love to eat yellow bananas.", emoji: "🍌" },
+            { en: "Orange", zh: "橙", ipa: "/ˈɒr.ɪndʒ/", example: "Oranges are rich in Vitamin C.", emoji: "🍊" },
+            { en: "Grape", zh: "提子 / 葡萄", ipa: "/ɡreɪp/", example: "Would you like some green or purple grapes?", emoji: "🍇" },
+            { en: "Strawberry", zh: "士多啤梨 / 草莓", ipa: "/ˈstrɔː.bər.i/", example: "She added fresh strawberries to her cake.", emoji: "🍓" },
+            { en: "Watermelon", zh: "西瓜", ipa: "/ˈwɔː.təˌmel.ən/", example: "Eating watermelon on a hot summer day is refreshing.", emoji: "🍉" },
+            { en: "Mango", zh: "芒果", ipa: "/ˈmæŋ.ɡəʊ/", example: "Mango sticky rice is a popular dessert.", emoji: "🥭" },
+            { en: "Pineapple", zh: "菠蘿 / 鳳梨", ipa: "/ˈpaɪnˌæp.əl/", example: "Pineapple tarts are delicious during festivals.", emoji: "🍍" },
+            { en: "Peach", zh: "桃", ipa: "/piːtʃ/", example: "The peach is sweet and juicy.", emoji: "🍑" },
+            { en: "Lemon", zh: "檸檬", ipa: "/ˈlem.ən/", example: "Adding lemon to tea gives it a fresh flavor.", emoji: "🍋" },
+            { en: "Cherry", zh: "車厘子 / 櫻桃", ipa: "/ˈtʃer.i/", example: "There are two bright red cherries on top.", emoji: "🍒" },
+            { en: "Kiwi", zh: "奇異果", ipa: "/ˈkiː.wiː/", example: "Kiwi fruit contains high levels of Vitamin C.", emoji: "🥝" }
+        ];
+
+        let currentTab = 'learn';
+
+        // Initialize UI on load
+        window.onload = function() {
+            renderFruitGrid(fruits);
+            initSpellingGame();
+            initQuizGame();
+        };
+
+        // Tab switching function
+        function switchTab(tab) {
+            currentTab = tab;
+            ['learn', 'spell', 'quiz'].forEach(t => {
+                const sec = document.getElementById(`section-${t}`);
+                const btn = document.getElementById(`btn-${t}`);
+                if (t === tab) {
+                    sec.classList.remove('hidden');
+                    btn.className = "px-4 py-2 rounded-lg font-semibold bg-white text-emerald-700 shadow transition flex items-center space-x-2";
+                } else {
+                    sec.classList.add('hidden');
+                    btn.className = "px-4 py-2 rounded-lg font-semibold bg-emerald-700 text-white hover:bg-emerald-800 transition flex items-center space-x-2";
+                }
+            });
+            if (tab === 'spell') nextSpellQuestion();
+            if (tab === 'quiz') nextQuizQuestion();
+        }
+
+        function renderFruitGrid(list) {
+            const grid = document.getElementById('fruit-grid');
+            grid.innerHTML = "";
+            if (list.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500">找不到相關的水果生字。</div>`;
+                return;
+            }
+            list.forEach(fruit => {
+                const card = document.createElement('div');
+                card.className = "fruit-card bg-white rounded-2xl p-5 border border-emerald-100 shadow-sm flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="text-5xl">${fruit.emoji}</span>
+                            <button onclick="speakText('${fruit.en}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 p-2.5 rounded-xl transition" title="讀音">
+                                <i class="fa-solid fa-volume-high text-lg"></i>
+                            </button>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">${fruit.en} <span class="text-sm font-normal text-emerald-600">${fruit.ipa}</span></h3>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">${fruit.zh}</p>
+                        <p class="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl italic border border-gray-100">"${fruit.example}"</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Filter fruits based on search input
+        function filterFruits() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = fruits.filter(f => f.en.toLowerCase().includes(query) || f.zh.includes(query));
+            renderFruitGrid(filtered);
+        }
+
+        // Web Speech API for pronunciation
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                showModal("提示", "你的瀏覽器不支援語音合成功能。", "⚠️");
+            }
+        }
+
+        let currentSpellIndex = 0;
+        let spellScore = 0;
+        let selectedLetters = [];
+        let availableTiles = [];
+        let currentTargetFruit = null;
+
+        function initSpellingGame() {
+            spellScore = 0;
+            document.getElementById('spell-score').innerText = spellScore;
+        }
+
+        function nextSpellQuestion() {
+            document.getElementById('spell-feedback').innerHTML = "";
+            currentTargetFruit = fruits[Math.floor(Math.random() * fruits.length)];
+            document.getElementById('spell-emoji').innerText = currentTargetFruit.emoji;
+            document.getElementById('spell-chinese').innerText = currentTargetFruit.zh;
+            document.getElementById('spell-hint').innerText = `提示: 英文共 ${currentTargetFruit.en.length} 個字母`;
+
+            const wordChars = currentTargetFruit.en.toUpperCase().split('');
+            // Shuffle characters for tile bank
+            availableTiles = [...wordChars].sort(() => Math.random() - 0.5);
+            selectedLetters = new Array(wordChars.length).fill(null);
+
+            renderSpellSlots();
+            renderLetterBank();
+            speakCurrentSpellWord();
+        }
+
+        function speakCurrentSpellWord() {
+            if (currentTargetFruit) speakText(currentTargetFruit.en);
+        }
+
+        function renderSpellSlots() {
+            const container = document.getElementById('spell-slots');
+            container.innerHTML = "";
+            selectedLetters.forEach((letter, idx) => {
+                const slot = document.createElement('div');
+                slot.className = `w-10 h-12 border-2 rounded-xl flex items-center justify-center text-lg font-bold cursor-pointer transition ${letter ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : 'border-dashed border-gray-300 bg-gray-50'}`;
+                slot.innerText = letter || '';
+                slot.onclick = () => removeLetterFromSlot(idx);
+                container.appendChild(slot);
+            });
+        }
+
+        function renderLetterBank() {
+            const container = document.getElementById('letter-bank');
+            container.innerHTML = "";
+            availableTiles.forEach((tile, idx) => {
+                if (tile !== null) {
+                    const btn = document.createElement('button');
+                    btn.className = "w-10 h-10 bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 font-bold rounded-xl shadow-sm transition transform hover:scale-105";
+                    btn.innerText = tile.char;
+                    // track original index or state if duplicated letters
+                    btn.onclick = () => placeLetter(tile, idx);
+                    container.appendChild(btn);
+                }
+            });
+        }
+
+        function placeLetter(tileObj, bankIdx) {
+            // Find first empty slot
+            const emptyIdx = selectedLetters.findIndex(l => l === null);
+            if (emptyIdx !== -1) {
+                selectedLetters[emptyIdx] = tileObj;
+                availableTiles[bankIdx] = null; // mark as used
+                renderSpellSlots();
+                renderLetterBank();
+            }
+        }
+
+        function removeLetterFromSlot(slotIdx) {
+            const tile = selectedLetters[slotIdx];
+            if (tile !== null) {
+                selectedLetters[slotIdx] = null;
+                // return to available tiles
+                const emptyBankIdx = availableTiles.findIndex(t => t === null);
+                if (emptyBankIdx !== -1) {
+                    availableTiles[emptyBankIdx] = tile;
+                }
+                renderSpellSlots();
+                renderLetterBank();
+            }
+        }
+
+        // Fix tile structure for duplicate letters
+        // Let's redefine availableTiles as objects {char, id}
+        function initSpellingGame() {
+            spellScore = 0;
+            document.getElementById('spell-score').innerText = spellScore;
+        }
+
+        // Override nextSpellQuestion to support tile objects with unique IDs
+        function nextSpellQuestion() {
+            document.getElementById('spell-feedback').innerHTML = "";
+            currentTargetFruit = fruits[Math.floor(Math.random() * fruits.length)];
+            document.getElementById('spell-emoji').innerText = currentTargetFruit.emoji;
+            document.getElementById('spell-chinese').innerText = currentTargetFruit.zh;
+            document.getElementById('spell-hint').innerText = `提示: 英文共 ${currentTargetFruit.en.length} 個字母`;
+
+            const wordChars = currentTargetFruit.en.toUpperCase().split('');
+            availableTiles = wordChars.map((char, index) => ({ char, id: index })).sort(() => Math.random() - 0.5);
+            selectedLetters = new Array(wordChars.length).fill(null);
+
+            renderSpellSlots();
+            renderLetterBank();
+            speakCurrentSpellWord();
+        }
+
+        function placeLetter(tileObj, bankIdx) {
+            const emptyIdx = selectedLetters.findIndex(l => l === null);
+            if (emptyIdx !== -1) {
+                selectedLetters[emptyIdx] = tileObj;
+                availableTiles[bankIdx] = null;
+                renderSpellSlots();
+                renderLetterBank();
+            }
+        }
+
+        function removeLetterFromSlot(slotIdx) {
+            const tile = selectedLetters[slotIdx];
+            if (tile !== null) {
+                selectedLetters[slotIdx] = null;
+                // find where it came from or put it back in first null spot in availableTiles
+                const nullIdx = availableTiles.findIndex(t => t === null);
+                if (nullIdx !== -1) {
+                    availableTiles[nullIdx] = tile;
+                }
+                renderSpellSlots();
+                renderLetterBank();
+            }
+        }
+
+        function checkSpelling() {
+            const userWord = selectedLetters.map(l => l ? l.char : '').join('');
+            const targetWord = currentTargetFruit.en.toUpperCase();
+            const feedback = document.getElementById('spell-feedback');
+
+            if (userWord.length < targetWord.length) {
+                feedback.innerHTML = `<span class="text-amber-600">請填滿所有字母空格！</span>`;
+                return;
+            }
+
+            if (userWord === targetWord) {
+                spellScore += 10;
+                document.getElementById('spell-score').innerText = spellScore;
+                feedback.innerHTML = `<span class="text-emerald-600">答對了！太棒了！ 🎉</span>`;
+                speakText("Correct! Well done!");
+                setTimeout(nextSpellQuestion, 1800);
+            } else {
+                feedback.innerHTML = `<span class="text-rose-600">拼寫錯誤，再試一次！</span>`;
+                speakText("Try again!");
+            }
+        }
+
+        let quizScore = 0;
+        let quizTotal = 0;
+        let currentQuizFruit = null;
+
+        function initQuizGame() {
+            quizScore = 0;
+            quizTotal = 0;
+            updateQuizScoreUI();
+        }
+
+        function updateQuizScoreUI() {
+            document.getElementById('quiz-score').innerText = quizScore;
+            document.getElementById('quiz-total').innerText = quizTotal;
+        }
+
+        function nextQuizQuestion() {
+            document.getElementById('quiz-feedback').innerHTML = "";
+            currentQuizFruit = fruits[Math.floor(Math.random() * fruits.length)];
+            
+            // Pick 3 random wrong options
+            let options = [currentQuizFruit];
+            while (options.length < 4) {
+                let randomFruit = fruits[Math.floor(Math.random() * fruits.length)];
+                if (!options.includes(randomFruit)) {
+                    options.push(randomFruit);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const container = document.getElementById('quiz-options');
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "p-4 bg-white hover:bg-emerald-50 border border-emerald-200 rounded-xl font-semibold text-lg text-gray-800 shadow-sm transition flex items-center justify-between";
+                btn.innerHTML = `<span>${opt.emoji} ${opt.en}</span> <span class="text-sm text-gray-500">${opt.zh}</span>`;
+                btn.onclick = () => checkQuizAnswer(opt.en, currentQuizFruit.en, btn);
+                container.appendChild(btn);
+            });
+
+            // Auto play audio on new question
+            playQuizAudio();
+        }
+
+        function playQuizAudio() {
+            if (currentQuizFruit) speakText(currentQuizFruit.en);
+        }
+
+        function checkQuizAnswer(selectedEn, correctEn, btnElement) {
+            quizTotal++;
+            const feedback = document.getElementById('quiz-feedback');
+            
+            if (selectedEn === correctEn) {
+                quizScore++;
+                btnElement.className = "p-4 bg-emerald-600 text-white rounded-xl font-semibold text-lg shadow transition flex items-center justify-between";
+                feedback.innerHTML = `<span class="text-emerald-600">答對了！你聽得真準確！ 🎉</span>`;
+                speakText("Correct!");
+            } else {
+                btnElement.className = "p-4 bg-rose-500 text-white rounded-xl font-semibold text-lg shadow transition flex items-center justify-between";
+                feedback.innerHTML = `<span class="text-rose-600">答錯了，正確答案是 ${correctEn}</span>`;
+                speakText("Incorrect.");
+            }
+            updateQuizScoreUI();
+            setTimeout(nextQuizQuestion, 2000);
+        }
+
+        // Modal utility
+        function showModal(title, text, icon="🎉") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('msg-modal').classList.remove('hidden');
+            document.getElementById('msg-modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('msg-modal').classList.add('hidden');
+            document.getElementById('msg-modal').classList.remove('flex');
+        }
+    </script>
+</body>
+</html>
